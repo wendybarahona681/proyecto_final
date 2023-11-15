@@ -5,14 +5,14 @@ import 'package:quiz_ap/classes/question.dart';
 import 'package:quiz_ap/classes/quiz.dart';
 import 'package:quiz_ap/pages/results_page.dart';
 
-class QuizPage extends StatefulWidget {
-  const QuizPage({Key? key}) : super(key: key);
+class NinoQuizPage extends StatefulWidget {
+  const NinoQuizPage({Key? key}) : super(key: key);
 
   @override
-  State<QuizPage> createState() => _QuizPageState();
+  State<NinoQuizPage> createState() => _QuizPageState();
 }
 
-class _QuizPageState extends State<QuizPage> {
+class _QuizPageState extends State<NinoQuizPage> {
   int totalQuestions = 5;
   int totalOptions = 4;
   int questionIndex = 0;
@@ -20,7 +20,7 @@ class _QuizPageState extends State<QuizPage> {
   Quiz quiz = Quiz(name: 'Quiz de la biblia', questions: []);
 
   Future<void> readJson() async {
-    final String response = await rootBundle.loadString('assets/paises.json');
+    final String response = await rootBundle.loadString('assets/ninos.json');
     final List<dynamic> data = await json.decode(response);
     List<int> optionList = List<int>.generate(data.length, (i) => i);
     List<int> questionsAdded = [];
@@ -106,8 +106,8 @@ class _QuizPageState extends State<QuizPage> {
               context,
               MaterialPageRoute(
                   builder: ((context) => ResultsPage(
-                        quiz: quiz,
-                      ))),
+                    quiz: quiz,
+                  ))),
             );
           },
           child: Text(
@@ -139,6 +139,7 @@ class _QuizPageState extends State<QuizPage> {
                 color: Colors.amber.shade900,
                 value: progressIndex / totalQuestions,
                 minHeight: 20,
+
               ),
             ),
           ),
@@ -148,61 +149,61 @@ class _QuizPageState extends State<QuizPage> {
               margin: const EdgeInsets.symmetric(horizontal: 25, vertical: 20),
               child: quiz.questions.isNotEmpty
                   ? Card(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            margin: const EdgeInsets.all(15),
-                            child: Text(
-                              quiz.questions[questionIndex].question,
-                              style: Theme.of(context).textTheme.headline1,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      margin: const EdgeInsets.all(15),
+                      child: Text(
+                        quiz.questions[questionIndex].question,
+                        style: Theme.of(context).textTheme.headline1,
+                      ),
+                    ),
+                    Flexible(
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: totalOptions,
+                        itemBuilder: (_, index) {
+                          return Container(
+                            margin: const EdgeInsets.all(3),
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                  color: Colors.indigo.shade100,
+                                  width: 2),
+                              borderRadius: BorderRadius.circular(15),
                             ),
-                          ),
-                          Flexible(
-                            child: ListView.builder(
-                              shrinkWrap: true,
-                              itemCount: totalOptions,
-                              itemBuilder: (_, index) {
-                                return Container(
-                                  margin: const EdgeInsets.all(3),
-                                  decoration: BoxDecoration(
-                                    border: Border.all(
-                                        color: Colors.indigo.shade100,
-                                        width: 2),
-                                    borderRadius: BorderRadius.circular(15),
-                                  ),
-                                  child: ListTile(
-                                    shape: const RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.all(
-                                        Radius.circular(15),
-                                      ),
-                                    ),
-                                    leading: Text('${index + 1}',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyText1),
-                                    title: Text(
-                                        quiz.questions[questionIndex]
-                                            .options[index],
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyText1),
-                                    onTap: () {
-                                      _optionSelected(quiz
-                                          .questions[questionIndex]
-                                          .options[index]);
-                                    },
-                                  ),
-                                );
+                            child: ListTile(
+                              shape: const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(15),
+                                ),
+                              ),
+                              leading: Text('${index + 1}',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyText1),
+                              title: Text(
+                                  quiz.questions[questionIndex]
+                                      .options[index],
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyText1),
+                              onTap: () {
+                                _optionSelected(quiz
+                                    .questions[questionIndex]
+                                    .options[index]);
                               },
                             ),
-                          ),
-                        ],
+                          );
+                        },
                       ),
-                    )
-                  : const CircularProgressIndicator(
-                      backgroundColor: Colors.white,
                     ),
+                  ],
+                ),
+              )
+                  : const CircularProgressIndicator(
+                backgroundColor: Colors.white,
+              ),
             ),
           ),
           TextButton(

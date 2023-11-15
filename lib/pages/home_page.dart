@@ -16,10 +16,11 @@ class HomePage extends StatelessWidget {
           children: [
             Container(
               margin: const EdgeInsets.only(top: 30, bottom: 50),
-              child: Icon(
-                Icons.wb_sunny_outlined,
-                size: 100,
-                color: Colors.purple.shade100,
+              child: Image.asset(
+                'assets/9.png', // Reemplaza con el nombre de tu imagen
+                width: 100, // Ajusta el ancho según sea necesario
+                height: 100, // Ajusta la altura según sea necesario
+
               ),
             ),
             Card(
@@ -36,7 +37,7 @@ class HomePage extends StatelessWidget {
                     margin: const EdgeInsets.only(top: 10, bottom: 25),
                     child: const Center(
                       child: Text(
-                        'QUIZ APP',
+                        'BIBLIE QUIZ',
                         style: TextStyle(
                           fontWeight: FontWeight.w600,
                           fontSize: 20,
@@ -71,6 +72,18 @@ class HomePage extends StatelessWidget {
                       Navigator.pushNamed(context, '/review-page');
                     },
                     child: const Text('Repasar Quiz'),
+                    style: OutlinedButton.styleFrom(
+                      primary: Colors.black,
+                      backgroundColor: Theme.of(context).primaryColorLight,
+                      elevation: 4,
+                      side: const BorderSide(width: 1),
+                    ),
+                  ),
+                  OutlinedButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/nino-page');
+                    },
+                    child: const Text('Sección para niños'),
                     style: OutlinedButton.styleFrom(
                       primary: Colors.black,
                       backgroundColor: Theme.of(context).primaryColorLight,

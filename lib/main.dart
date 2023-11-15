@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:quiz_ap/pages/home_page.dart';
 import 'package:quiz_ap/pages/quiz_page.dart';
 import 'package:quiz_ap/pages/review_quiz_page.dart';
+import 'package:quiz_ap/pages/nino_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -52,6 +53,7 @@ class MyApp extends StatelessWidget {
           '/': (context) => const HomePage(),
           '/quiz-page': (context) => const QuizPage(),
           '/review-page': (context) => const ReviewQuizPage(),
+          '/nino-page': (context) => const NinoQuizPage(),
         });
   }
 }

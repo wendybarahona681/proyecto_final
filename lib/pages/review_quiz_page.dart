@@ -12,7 +12,7 @@ class ReviewQuizPage extends StatefulWidget {
 }
 
 class _ReviewQuizPageState extends State<ReviewQuizPage> {
-  Quiz quiz = Quiz(name: 'Quiz de Capitales', questions: []);
+  Quiz quiz = Quiz(name: 'Quiz de la Biblia', questions: []);
 
   Future<void> readJson() async {
     final String response = await rootBundle.loadString('assets/paises.json');
