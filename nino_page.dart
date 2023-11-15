@@ -1,172 +1,219 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:quiz_ap/classes/question.dart';
+import 'package:quiz_ap/classes/quiz.dart';
+import 'package:quiz_ap/pages/results_page.dart';
 
-void main() {
-  runApp(MyApp());
+class NinoQuizPage extends StatefulWidget {
+  const NinoQuizPage({Key? key}) : super(key: key);
+
+  @override
+  State<NinoQuizPage> createState() => _QuizPageState();
 }
 
-class MyApp extends StatelessWidget {
+class _QuizPageState extends State<NinoQuizPage> {
+  int totalQuestions = 7;
+  int totalOptions = 6;
+  int questionIndex = 0;
+  int progressIndex = 0;
+  Quiz quiz = Quiz(name: 'Quiz de la biblia', questions: []);
+
+  Future<void> readJson() async {
+    final String response = await rootBundle.loadString('assets/ninos.json');
+    final List<dynamic> data = await json.decode(response);
+    List<int> optionList = List<int>.generate(data.length, (i) => i);
+    List<int> questionsAdded = [];
+
+    while (true) {
+      optionList.shuffle();
+      int answer = optionList[0];
+      if (questionsAdded.contains(answer)) continue;
+      questionsAdded.add(answer);
+
+      List<String> otherOptions = [];
+      for (var option in optionList.sublist(1, totalOptions)) {
+        otherOptions.add(data[option]['capital']);
+      }
+
+      Question question = Question.fromJson(data[answer]);
+      question.addOptions(otherOptions);
+      quiz.questions.add(question);
+
+      if (quiz.questions.length >= totalQuestions) break;
+    }
+
+    setState(() {});
+  }
+
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: QuizScreen(),
+  void initState() {
+    super.initState();
+    readJson();
+  }
+
+  void _optionSelected(String selected) {
+    quiz.questions[questionIndex].selected = selected;
+    if (selected == quiz.questions[questionIndex].answer) {
+      quiz.questions[questionIndex].correct = true;
+      quiz.right += 1;
+    }
+
+    progressIndex += 1;
+    if (questionIndex < totalQuestions - 1) {
+      questionIndex += 1;
+    } else {
+      showDialog(
+          barrierDismissible: false,
+          context: context,
+          builder: (BuildContext context) => _buildResultDialog(context));
+    }
+
+    setState(() {});
+  }
+
+  Widget _buildResultDialog(BuildContext context) {
+    return AlertDialog(
+      title: Text('Resultados', style: Theme.of(context).textTheme.headline1),
+      backgroundColor: Theme.of(context).primaryColorDark,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Preguntas totales: $totalQuestions',
+            style: Theme.of(context).textTheme.bodyText1,
+          ),
+          Text(
+            'Correctas: ${quiz.right}',
+            style: Theme.of(context).textTheme.bodyText1,
+          ),
+          Text(
+            'Incorrectas: ${(totalQuestions - quiz.right)}',
+            style: Theme.of(context).textTheme.bodyText1,
+          ),
+          Text(
+            'Porcentaje: ${quiz.percent}%',
+            style: Theme.of(context).textTheme.bodyText1,
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                  builder: ((context) => ResultsPage(
+                    quiz: quiz,
+                  ))),
+            );
+          },
+          child: Text(
+            'Ver Respuestas',
+            style: Theme.of(context).textTheme.bodyText1,
+          ),
+        ),
+      ],
     );
-  }
-}
-
-class QuizScreen extends StatefulWidget {
-  @override
-  _QuizScreenState createState() => _QuizScreenState();
-}
-
-class _QuizScreenState extends State<QuizScreen> {
-  int _questionIndex = 0;
-  List<Map<String, Object>> _questions = [
-    {
-      'questionText': '¿Cuál es el color del cielo?',
-      'answers': [
-        {'text': 'Rojo', 'score': 0},
-        {'text': 'Azul', 'score': 10},
-        {'text': 'Verde', 'score': 0},
-      ],
-    },
-    {
-      'questionText': '¿Cuántos dedos tiene una mano?',
-      'answers': [
-        {'text': 'Cinco', 'score': 10},
-        {'text': 'Seis', 'score': 0},
-        {'text': 'Cuatro', 'score': 0},
-      ],
-    },
-    // Agrega más preguntas según sea necesario
-  ];
-
-  void _answerQuestion(int score) {
-    setState(() {
-      _questionIndex++;
-    });
-  }
-
-  void _resetQuiz() {
-    setState(() {
-      _questionIndex = 0;
-    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.indigo,
       appBar: AppBar(
-        title: Text('Quiz para Niños'),
+        title: Text(quiz.name),
+        backgroundColor: Colors.indigo,
+        elevation: 0,
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage(
-                'assets/kids_background.jpg'), // Ajusta la ruta de la imagen según tu proyecto
-            fit: BoxFit.cover,
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 30),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(15),
+              child: LinearProgressIndicator(
+                color: Colors.amber.shade900,
+                value: progressIndex / totalQuestions,
+                minHeight: 20,
+
+              ),
+            ),
           ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: _questionIndex < _questions.length
-              ? Quiz(
-                  questionIndex: _questionIndex,
-                  questions: _questions,
-                  answerQuestion: _answerQuestion,
-                )
-              : Result(_resetQuiz),
-        ),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 450),
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 25, vertical: 20),
+              child: quiz.questions.isNotEmpty
+                  ? Card(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      margin: const EdgeInsets.all(15),
+                      child: Text(
+                        quiz.questions[questionIndex].question,
+                        style: Theme.of(context).textTheme.headline1,
+                      ),
+                    ),
+                    Flexible(
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: totalOptions,
+                        itemBuilder: (_, index) {
+                          return Container(
+                            margin: const EdgeInsets.all(3),
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                  color: Colors.indigo.shade100,
+                                  width: 2),
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            child: ListTile(
+                              shape: const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(15),
+                                ),
+                              ),
+                              leading: Text('${index + 1}',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyText1),
+                              title: Text(
+                                  quiz.questions[questionIndex]
+                                      .options[index],
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyText1),
+                              onTap: () {
+                                _optionSelected(quiz
+                                    .questions[questionIndex]
+                                    .options[index]);
+                              },
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              )
+                  : const CircularProgressIndicator(
+                backgroundColor: Colors.white,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              _optionSelected('Skipped');
+            },
+            child: Text('Skip', style: Theme.of(context).textTheme.bodyText1),
+          ),
+        ],
       ),
-    );
-  }
-}
-
-class Quiz extends StatelessWidget {
-  final int questionIndex;
-  final List<Map<String, Object>> questions;
-  final Function answerQuestion;
-
-  Quiz({
-    required this.questionIndex,
-    required this.questions,
-    required this.answerQuestion,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Question(questions[questionIndex]['questionText'] as String),
-        ...(questions[questionIndex]['answers'] as List<Map<String, Object>>)
-            .map((answer) {
-          return Answer(
-              () => answerQuestion(answer['score']), answer['text'] as String);
-        }).toList(),
-      ],
-    );
-  }
-}
-
-class Question extends StatelessWidget {
-  final String questionText;
-
-  Question(this.questionText);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.all(10),
-      child: Text(
-        questionText,
-        style: TextStyle(fontSize: 24, color: Colors.white),
-        textAlign: TextAlign.center,
-      ),
-    );
-  }
-}
-
-class Answer extends StatelessWidget {
-  final VoidCallback selectHandler;
-  final String answerText;
-
-  Answer(this.selectHandler, this.answerText);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.all(10),
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: selectHandler,
-        child: Text(answerText),
-      ),
-    );
-  }
-}
-
-class Result extends StatelessWidget {
-  final VoidCallback resetHandler;
-
-  Result(this.resetHandler);
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Text(
-          '¡Has completado el quiz!',
-          style: TextStyle(
-              fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
-          textAlign: TextAlign.center,
-        ),
-        SizedBox(height: 20),
-        ElevatedButton(
-          onPressed: resetHandler,
-          child: Text('Volver al inicio'),
-        ),
-      ],
     );
   }
 }

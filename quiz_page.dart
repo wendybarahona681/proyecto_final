@@ -14,7 +14,7 @@ class QuizPage extends StatefulWidget {
 
 class _QuizPageState extends State<QuizPage> {
   int totalQuestions = 5;
-  int totalOptions = 4;
+  int totalOptions = 6;
   int questionIndex = 0;
   int progressIndex = 0;
   Quiz quiz = Quiz(name: 'Quiz de la biblia', questions: []);
